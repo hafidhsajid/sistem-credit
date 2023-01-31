@@ -38,6 +38,48 @@ app.get("/get", (req, res) => {
     res.status(401).json({ message: " Please login first. " });
   }
 });
+
+app.post("/deposit", (req, res) => {
+  var sess = req.session;
+  console.log(sess.email);
+  if (sess.email) {
+    if (req.body.deposit === undefined) {
+      return res.status(500).json({ message: " Input deposit first. " });
+    } else {
+      data = con.query(
+        `SELECT * FROM user WHERE user.email='${sess.email}'`,
+        function (err, data) {
+          var depositSql = `UPDATE user SET balance =${data[0].balance}+${req.body.deposit} WHERE user.id =${data[0].id} ;`;
+
+          con.query(
+            depositSql,
+            [req.body.name, req.body.email, req.body.password],
+            (err, rows, field) => {
+              // error handling
+              if (err) {
+                return res
+                  .status(500)
+                  .json({ message: "Gagal melakukan deposit!", error: err });
+              }
+
+              // res
+              //   .status(201)
+              //   .json({ success: true, message: "Berhasil melakukan deposit!" });
+            }
+          );
+          var idFormat = parseInt(data[0].balance) + parseInt(req.body.deposit);
+          idFormat = idFormat.toLocaleString("id-ID");
+          return res.json({
+            Name: data[0].name,
+            Balance: `Rp. ${idFormat}`,
+          });
+        }
+      );
+    }
+  } else {
+    return res.status(401).json({ message: " Please login first. " });
+  }
+});
 app.post("/login", (req, res) => {
   if (req.body.email != undefined && req.body.password != undefined) {
     con.query(
