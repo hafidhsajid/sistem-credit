@@ -12,7 +12,7 @@ con.connect(function(err) {
         console.error("error connecting: " + err.stack);
         res
             .status(500)
-            .send(JSON.stringify({ message: "Database connection error" }));
+            .json(({ message: "Database connection error" }));
     } else {
         console.log("Database connected succesfully!");
     }
