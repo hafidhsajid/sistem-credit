@@ -12,7 +12,7 @@ app.use(
     resave: true,
     saveUninitialized: true,
     cookie: {
-      maxAge: 1000 * 60 * 100,
+      maxAge: 1000 * 60 * 3,
     },
   })
 );
@@ -39,7 +39,7 @@ app.get("/get", (req, res) => {
   }
 });
 app.post("/login", (req, res) => {
-  if (req.body.email != undefined) {
+  if (req.body.email != undefined && req.body.password != undefined) {
     con.query(
       "SELECT * FROM user WHERE email = ?",
       [req.body.email],
@@ -51,9 +51,13 @@ app.post("/login", (req, res) => {
             if (result[0].password == req.body.password) {
               var sess = req.session;
               sess.email = req.body.email;
+              var idFormat = parseInt(result[0].balance).toLocaleString(
+                "id-ID"
+              );
               return res.json({
+                Name: result[0].name,
+                Balance: `Rp. ${idFormat}`,
                 message: "Login Berhasil",
-                status: 200,
                 // data: token,
               });
             } else {
@@ -66,10 +70,39 @@ app.post("/login", (req, res) => {
       }
     );
   } else {
-    return res.json({ data: "" });
-    // res.status(401).send(JSON.stringify({ data: "" }));
+    return res.json({ data: "Input not valid" });
   }
 });
+
+app.post("/regis", (req, res) => {
+  var data = { ...req.body };
+  data.created_at = new Date();
+
+          var querySql = `INSERT INTO user (name, email, password) VALUES ('${req.body.name}', '${req.body.email}', '${req.body.password}')`;
+
+          con.query(
+            querySql,
+            [req.body.name, req.body.email, req.body.password],
+            (err, rows, field) => {
+              // error handling
+              if (err) {
+                return res
+                  .status(500)
+                  .json({ message: "Gagal melakukan registrasi!", error: err });
+              }
+
+              res
+                .status(201)
+                .json({
+                  success: true,
+                  message: "Berhasil melakukan registrasi!",
+                });
+            }
+          );
+        }
+      
+    
+  );
 
 app.get("/logout", (req, res) => {
   req.session.destroy((err) => {
@@ -80,4 +113,9 @@ app.get("/logout", (req, res) => {
   });
 });
 
-app.listen(3000);
+app.listen(3000, (err) => {
+  if (err) {
+    console.log(err);
+  }
+  console.log("Server is running on port 3000");
+});
