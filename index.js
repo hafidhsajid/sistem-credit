@@ -11,6 +11,9 @@ app.use(
     secret: process.env.SESSION_SECRET || "secretttt",
     resave: true,
     saveUninitialized: true,
+    cookie: {
+      maxAge: 1000 * 60 * 100,
+    },
   })
 );
 
