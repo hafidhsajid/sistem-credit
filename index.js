@@ -9,4 +9,11 @@ console.log(process.env.DB_HOST);
 app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
+app.get("/get", (req, res) => {
+  data = con.query("SELECT * FROM `Barang`", function (err, data) {
+    return res.json({
+      data: data,
+    });
+  });
+});
 app.listen(3000);
