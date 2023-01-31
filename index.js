@@ -6,13 +6,13 @@ var con = require("./database");
 var bodyparser = require("body-parser");
 var session = require("express-session");
 
-app.use(session({ 
-    secret: process.env.SESSION_SECRET || "secretttt" ,
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "secretttt",
     resave: true,
-    saveUninitialized: true
-
-}
-    ));
+    saveUninitialized: true,
+  })
+);
 
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
