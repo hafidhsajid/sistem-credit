@@ -14,8 +14,7 @@ con.connect(function(err) {
             .status(500)
             .send(JSON.stringify({ message: "Database connection error" }));
     } else {
-        console.log("Connected!");
-        // next();
+        console.log("Database connected succesfully!");
     }
 });
 
