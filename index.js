@@ -78,6 +78,16 @@ app.post("/regis", (req, res) => {
   var data = { ...req.body };
   data.created_at = new Date();
 
+  con.query(
+    "SELECT * FROM user WHERE email = ?",
+    [req.body.email],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Database error" });
+      } else {
+        if (result.length > 0) {
+          res.status(500).json({ message: "Gagal! Email sudah terdaftar" });
+        } else {
           var querySql = `INSERT INTO user (name, email, password) VALUES ('${req.body.name}', '${req.body.email}', '${req.body.password}')`;
 
           con.query(
@@ -100,9 +110,10 @@ app.post("/regis", (req, res) => {
             }
           );
         }
-      
-    
+      }
+    }
   );
+});
 
 app.get("/logout", (req, res) => {
   req.session.destroy((err) => {
