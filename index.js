@@ -26,6 +26,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
+
 app.get("/get", (req, res) => {
   var sess = req.session;
   if (sess.email) {
@@ -89,10 +90,12 @@ app.post("/login", (req, res) => {
         if (err) {
           return res.status(500).json({ message: "Database error" });
         } else {
+          console.log(result[0].name);
           if (result.length > 0) {
             if (result[0].password == req.body.password) {
               var sess = req.session;
               sess.email = req.body.email;
+              sess.name = result[0].name;
               var idFormat = parseInt(result[0].balance).toLocaleString(
                 "id-ID"
               );
@@ -143,12 +146,10 @@ app.post("/regis", (req, res) => {
                   .json({ message: "Gagal melakukan registrasi!", error: err });
               }
 
-              res
-                .status(201)
-                .json({
-                  success: true,
-                  message: "Berhasil melakukan registrasi!",
-                });
+              res.status(201).json({
+                success: true,
+                message: "Berhasil melakukan registrasi!",
+              });
             }
           );
         }
@@ -158,12 +159,23 @@ app.post("/regis", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return console.log(err);
-    }
-    res.redirect("/");
-  });
+  var sess = req.session;
+  if (sess.name) {
+    var name = sess.name;
+
+
+    req.session.destroy((err) => {
+      if (err) {
+        return console.log(err);
+
+        // return res.status(500).json({ message: "Something wrong!", error: err });
+      }
+    });
+
+    res.json({ message: `Thankyou ${name}, See You Next Time!` });
+  } else {
+    res.json({ message: `Thankyou, See You Next Time!` });
+  }
 });
 
 app.listen(3000, (err) => {
