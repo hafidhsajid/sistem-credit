@@ -4,7 +4,6 @@ var dotenv = require("dotenv").config();
 var app = express();
 var con = require("./database");
 var bodyparser = require("body-parser");
-
 var session = require("express-session");
 
 app.use(session({ secret: process.env.SESSION_SECRET || "secretttt" }));
@@ -26,11 +25,8 @@ app.get("/get", (req, res) => {
         data: data,
       });
     });
-    // res.write(`<h1>Hello ${sess.email} h1><br>`);
-    // res.end('+'>Logout');
   } else {
     res.status(401).json({ message: " Please login first. " });
-    // res.end('+'>Login');
   }
 });
 app.post("/login", (req, res) => {
@@ -40,8 +36,7 @@ app.post("/login", (req, res) => {
       [req.body.email],
       (err, result) => {
         if (err) {
-          return res.json({ message: "Database error" });
-          //   res.status(500).send(JSON.stringify({ message: "Database error" }));
+          return res.status(500).json({ message: "Database error" });
         } else {
           if (result.length > 0) {
             if (result[0].password == req.body.password) {
