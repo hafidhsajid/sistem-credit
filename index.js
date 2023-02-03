@@ -27,17 +27,73 @@ app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
 
-app.get("/get", (req, res) => {
+app.get("/getinvoice", (req, res) => {
   var sess = req.session;
-  if (sess.email) {
-    data = con.query("SELECT * FROM `Barang`", function (err, data) {
-      return res.json({
-        data: data,
+  // if (sess.email) {
+  con.query(
+    `SELECT Invoice.Id nomerInvoice, user.id nomerCostumer, user.name namaCustomer, Leasing.LeasingName penagih, Invoice.jumlahPembayaran jumlah  FROM Invoice JOIN user ON Invoice.IdCustomer=user.id JOIN Leasing ON Leasing.ID=Invoice.IdLeasing WHERE user.email='${sess.email}';`,
+    function (err, data) {
+      // con.query(
+      // `SELECT Invoice.Id nomerInvoice, user.id nomerCostumer, user.name namaCustomer, Leasing.LeasingName penagih, Invoice.jumlahPembayaran jumlah FROM Invoice JOIN user ON Invoice.IdCustomer=user.id WHERE user.email='admin@admin.com';`,
+      // function (err, data) {
+      invoicearr = [];
+
+      invoicearr = data;
+      const promises = invoicearr.map((element, idx) => {
+        return new Promise((resolve) => {
+          // console.log(invoicearr[idx]);
+          console.log(idx);
+          con.query(
+            `SELECT Invoice.id Invoiceid, Leasing.LeasingName namaPenagih, user.name namaPembayar,Pembayaran.jumlahPembayaran jumlahPembayaran, Invoice.jumlahPembayaran jumlahTagihan, Pembayaran.updatedAt, Pembayaran.createdAt, Pembayaran.deletedAt FROM Pembayaran JOIN Invoice ON Invoice.Id = Pembayaran.IdInvoice JOIN Leasing ON Leasing.ID=Invoice.IdLeasing JOIN user ON Pembayaran.IdCustomer=user.id WHERE IdInvoice=${invoicearr[idx].nomerInvoice};`,
+            function (err, data1) {
+              // console.log(data[idx].id);
+              if (err) {
+                console.log("Error" + err);
+              }
+              // invoicearr[
+              //   idx
+              // ].nomerInvoice = `INV000${invoicearr[idx].nomerInvoice}`;
+              // invoicearr[
+              //   idx
+              // ].nomerCostumer = `CUST000${invoicearr[idx].nomerCostumer}`;
+              if (data1.length > 0) {
+                invoicearr[idx].status = "OWE";
+              } else {
+                invoicearr[idx].status = "Menunggu";
+              }
+              pembayaran = [];
+              invoicearr[idx].pembayaran = data1;
+              invoicearr[
+                idx
+              ].nomerInvoice = `INV0000${invoicearr[idx].nomerInvoice}`;
+              invoicearr[
+                idx
+              ].nomerCostumer = `CUST0000${invoicearr[idx].nomerCostumer}`;
+              sumpayment = 0;
+
+              data1.map((element, idx) => {
+                data1[idx].Invoiceid = `INV0000${data1[idx].Invoiceid}`;
+                data1[idx].jumlahTagihan = invoicearr[idx].jumlah;
+                sumpayment += data1[idx].jumlahPembayaran;
+                data1[idx].sisaPembayran = invoicearr[idx].jumlah - sumpayment;
+              });
+              resolve();
+
+              // console.log(data);
+            }
+          );
+        });
       });
-    });
-  } else {
-    res.status(401).json({ message: " Please login first. " });
-  }
+
+      Promise.all(promises).then(() => {
+        res.send(invoicearr);
+      });
+      // res.json({
+      //   data: data,
+      // });
+      // console.log(data);
+    }
+  );
 });
 
 app.post("/deposit", (req, res) => {
@@ -162,7 +218,6 @@ app.get("/logout", (req, res) => {
   var sess = req.session;
   if (sess.name) {
     var name = sess.name;
-
 
     req.session.destroy((err) => {
       if (err) {
