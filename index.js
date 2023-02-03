@@ -96,6 +96,58 @@ app.get("/getinvoice", (req, res) => {
   );
 });
 
+
+app.post("/transfer", (req, res) => {
+  var sess = req.session;
+  console.log(sess.email);
+  if (sess.email) {
+    con.query(
+      `SELECT id,name FROM user WHERE email='${sess.email}' LIMIT 1`,
+      function (err, data1) {
+        if (err) {
+          console.log(err);
+        }
+    con.query(
+      `SELECT * FROM Invoice WHERE Id='${String(req.body.invoiceId).slice(6)}' LIMIT 1`,
+      function (err, data2) {
+        if (err) {
+          console.log(err);
+        }
+        console.log(data2);
+      
+
+    con.execute(
+      `INSERT INTO Pembayaran  (IdInvoice, IdCustomer, IdLeasing, jumlahPembayaran, createdAt, updatedAt) VALUES ('${
+        String(req.body.invoiceId).slice(6)
+      }','${data1[0].id}', '${data2[0].IdLeasing}'
+      ,'${data2[0].jumlahPembayaran}',  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      function (err, data3) {
+        if (err) {
+          console.log(err);
+        }
+        console.log(data3);
+        if (data3.affectedRows>0) {
+          
+          console.log(data3.insertId);
+          // return res.json({
+          //   nomerInvoice:`INV000${data3.insertId}`,
+          //   nomerCostumer:`${data1[0].id}`,
+          //   namaCostumer: `${data1[0].name}`,
+          //   // penagih:`${arrLeasing[0].LeasingName}`,
+          //   // status:'Menunggu',
+          // });
+        
+        }
+
+
+      }
+    );
+      });
+      });
+  } else {
+    return res.status(401).json({ message: " Please login first. " });
+  }
+});
 app.post("/deposit", (req, res) => {
   var sess = req.session;
   console.log(sess.email);
