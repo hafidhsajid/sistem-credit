@@ -96,6 +96,38 @@ app.get("/getinvoice", (req, res) => {
   );
 });
 
+app.get("/getcar", (req, res) => {
+  var sess = req.session;
+  if (sess.email) {
+    data = con.query("SELECT * FROM `Car`", function (err, data) {
+      data.map((element, idx) => {
+        data[idx].Id = `CAR0000${data[idx].Id}`;
+      });
+      return res.json({
+        data: data,
+      });
+    });
+  } else {
+    res.status(401).json({ message: " Please login first. " });
+  }
+});
+app.get("/getleasing", (req, res) => {
+  var sess = req.session;
+  if (sess.email) {
+    data = con.query("SELECT * FROM `Leasing`", function (err, data) {
+      data.map((element, idx) => {
+        data[idx].ID = `L00${data[idx].ID}`;
+        data[idx].Rates = `${data[idx].Rates}%`;
+      });
+      return res.json({
+        data: data,
+      });
+    });
+  } else {
+    res.status(401).json({ message: " Please login first. " });
+  }
+});
+
 app.post("/makeinvoice", (req, res) => {
   var sess = req.session;
 
