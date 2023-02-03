@@ -96,6 +96,78 @@ app.get("/getinvoice", (req, res) => {
   );
 });
 
+app.post("/makeinvoice", (req, res) => {
+  var sess = req.session;
+
+  if (sess.email) {
+    // console.log(String(req.body.leasingId).slice(3));
+    arrCar = [];
+    arrLeasing = [];
+    promises1 = con.query(
+      `SELECT * FROM Car WHERE id=${String(req.body.carid).slice(7)}`,
+      function (err, data) {
+        arrCar = data;
+        con.query(
+          `SELECT * FROM Leasing WHERE ID=${String(req.body.leasingId).slice(
+            3
+          )}`,
+          function (err, data) {
+            arrLeasing = data;
+            // console.log(`${arrLeasing[0].Rates} ,${arrLeasing[0].Terms},${((arrLeasing[0].Rates)/100)}`);
+            // console.log(arrCar);
+            // console.log(`${arrCar[0].Price}`);
+            var bunga =
+              ((arrLeasing[0].Rates / 100) * arrCar[0].Price) /
+              arrLeasing[0].Terms;
+            // console.log(`Bunga: ${(((arrLeasing[0].Rates)/100)*(arrCar[0].Price)/arrLeasing[0].Terms)}`);
+            // console.log(`Cicilan: ${((arrCar[0].Price)/arrLeasing[0].Terms)+bunga}`);y
+            con.query(
+              `SELECT id,name FROM user WHERE email='${sess.email}' LIMIT 1`,
+              function (err, data1) {
+                if (err) {
+                  console.log(err);
+                }
+                con.execute(
+                  `INSERT INTO Invoice (IdLeasing, IdCustomer, jumlahPembayaran, updatedAt, createdAt) VALUES ('${
+                    arrLeasing[0].ID
+                  }','${data1[0].id}', '${
+                    arrCar[0].Price / arrLeasing[0].Terms + bunga
+                  }',  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                  function (err, data) {
+                    if (err) {
+                      console.log(err);
+                    }
+                    console.log(data);
+                    if (data.affectedRows>0) {
+                      
+                      console.log(data.insertId);
+                      return res.json({
+                        nomerInvoice:`INV000${data.insertId}`,
+                        nomerCostumer:`${data1[0].id}`,
+                        namaCostumer: `${data1[0].name}`,
+                        penagih:`${arrLeasing[0].LeasingName}`,
+                        jumlah:`${arrCar[0].Price / arrLeasing[0].Terms + bunga}`,
+                        status:'Menunggu',
+                        // data: arrCar,
+                        // data1: arrLeasing,
+                      });
+                    }
+
+
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    );
+
+    // res.send(invoicearr);
+  } else {
+    res.status(401).json({ message: " Please login first. " });
+  }
+});
 
 app.post("/transfer", (req, res) => {
   var sess = req.session;
